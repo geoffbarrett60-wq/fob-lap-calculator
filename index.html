@@ -147,6 +147,24 @@ select,input[type=number],input[type=text]{
   color:var(--ink);
 }
 select:focus,input:focus{outline:2px solid var(--ink);outline-offset:1px;}
+input[readonly].locked-field{
+  background:var(--paper-2);
+  color:var(--muted);
+  cursor:not-allowed;
+  border-color:var(--line);
+}
+input[readonly].locked-field:focus{outline:none;}
+input[readonly].locked-field::-webkit-outer-spin-button,
+input[readonly].locked-field::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+.effective-date{
+  font-size:10.5px;
+  color:var(--muted);
+  margin-top:4px;
+  font-style:italic;
+}
 
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
@@ -278,7 +296,7 @@ button.action.ghost{background:transparent;color:var(--ink);}
   </header>
 
   <div class="banner">
-    <b>Rates are editable placeholders, not a compliance source.</b> Duty layers (Section 301 / reciprocal / trade-preference programs) have changed several times in the past year and vary by exact 10-digit HTS code and origin qualification. Open <b>Rate Tables</b> below to review or update the figures, and confirm anything you rely on for filing with your customs broker or the current HTSUS.
+    <b>Rates are editable placeholders, not a compliance source.</b> Duty layers (US Section 301 / reciprocal tariffs, Canadian MFN/LDCT/FTA treatment) have changed repeatedly and vary by exact tariff classification and origin qualification. Open <b>Rate Tables</b> below to review or update the figures, and confirm anything you rely on for filing with your customs broker, the current HTSUS, or the CBSA Customs Tariff.
   </div>
 
   <div class="direction-toggle" id="dirToggle">
@@ -290,6 +308,14 @@ button.action.ghost{background:transparent;color:var(--ink);}
     <!-- INPUT PANEL -->
     <section class="panel">
       <h2>Inputs</h2>
+
+      <div class="field">
+        <label for="market">Importing Into</label>
+        <select id="market">
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
+        </select>
+      </div>
 
       <div class="field">
         <label for="classification">Classification</label>
@@ -315,11 +341,13 @@ button.action.ghost{background:transparent;color:var(--ink);}
       <div class="two-col">
         <div class="field">
           <label>Duty Rate %</label>
-          <input type="number" id="dutyPct" step="0.1">
+          <input type="number" id="dutyPct" step="0.1" readonly tabindex="-1" class="locked-field">
+          <div class="effective-date" id="dutyEffectiveNote">Effective —</div>
         </div>
         <div class="field">
-          <label>Additional Tariff %</label>
-          <input type="number" id="tariffPct" step="0.1">
+          <label id="tariffFieldLabel">Additional Tariff %</label>
+          <input type="number" id="tariffPct" step="0.1" readonly tabindex="-1" class="locked-field">
+          <div class="effective-date" id="tariffEffectiveNote">Effective —</div>
         </div>
       </div>
 
@@ -337,7 +365,14 @@ button.action.ghost{background:transparent;color:var(--ink);}
           <input type="number" id="miscPct" step="0.1">
         </div>
       </div>
-      <div class="sub">Duty and tariff auto-fill from the rate tables when you change classification or COO — all four fields can be overridden per calculation.</div>
+      <div class="field" id="gstRow" style="display:none;">
+        <label>Import GST/HST %</label>
+        <input type="number" id="gstPct" step="0.1" readonly tabindex="-1" class="locked-field">
+        <div class="effective-date" id="gstEffectiveNote">Effective —</div>
+        <div class="sub">Applied to FOB + Duty, per CBSA rules. Often recoverable via input tax credit if your business is GST-registered — factor that into how you use this number.</div>
+      </div>
+
+      <div class="sub">Duty, tariff, and (for Canada) GST/HST are pulled directly from the official rate schedule and locked here — update the underlying numbers in the Rate Tables drawer below if a schedule changes. Freight, management, and misc loads are your own business assumptions and stay editable per calculation.</div>
     </section>
 
     <!-- RESULT PANEL -->
@@ -351,6 +386,7 @@ button.action.ghost{background:transparent;color:var(--ink);}
       <div class="manifest-row sub"><span id="rowFreightLabel">+ Freight Load (0%)</span><span class="amt" id="rowFreight">$0.00</span></div>
       <div class="manifest-row sub"><span id="rowMgmtLabel">+ Management Load (0%)</span><span class="amt" id="rowMgmt">$0.00</span></div>
       <div class="manifest-row sub"><span id="rowMiscLabel">+ Misc Load (0%)</span><span class="amt" id="rowMisc">$0.00</span></div>
+      <div class="manifest-row sub" id="rowGstWrap" style="display:none;"><span id="rowGstLabel">+ GST/HST (0%)</span><span class="amt" id="rowGst">$0.00</span></div>
       <div class="manifest-row total"><span id="rowTotalLabel">LDP Cost</span><span class="amt" id="rowTotal">$0.00</span></div>
 
       <div class="stack-bar" id="stackBar"></div>
@@ -367,17 +403,28 @@ button.action.ghost{background:transparent;color:var(--ink);}
     <div class="drawer-body">
       <div class="sub" style="margin-bottom:12px;">Last verified: <span id="lastVerified">—</span>. Edit any figure below, then <b>Save as My Defaults</b> to keep it on this device. This only affects your own copy — the built-in master rates are unchanged for everyone else, and <b>Reset to Built-In Defaults</b> always brings them back.</div>
 
-      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Duty Rate — by Classification × Fabric</h3>
-      <table id="dutyMatrixTable"><thead><tr id="dutyMatrixHead"><th>Classification</th></tr></thead><tbody></tbody></table>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">United States — Duty Rate by Classification × Fabric</h3>
+      <table id="dutyMatrixTableUS"><thead><tr id="dutyMatrixHeadUS"><th>Classification</th></tr></thead><tbody></tbody></table>
 
-      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Country of Origin — Additional Tariff</h3>
-      <table id="cooTable"><thead><tr><th>Country</th><th>Duty-Free Zone?</th><th>Addl. %</th><th>Note</th></tr></thead><tbody></tbody></table>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">United States — Country of Origin, Additional Tariff</h3>
+      <table id="cooTableUS"><thead><tr><th>Country</th><th>Duty-Free Zone?</th><th>Addl. %</th><th>Note</th></tr></thead><tbody></tbody></table>
+
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Canada — Duty Rate by Classification × Fabric</h3>
+      <table id="dutyMatrixTableCA"><thead><tr id="dutyMatrixHeadCA"><th>Classification</th></tr></thead><tbody></tbody></table>
+
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Canada — Country of Origin, Tariff Treatment</h3>
+      <table id="cooTableCA"><thead><tr><th>Country</th><th>Duty-Free (FTA/LDCT)?</th><th>Addl. Surcharge %</th><th>Note</th></tr></thead><tbody></tbody></table>
 
       <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Default Loads</h3>
-      <div class="two-col" style="max-width:400px;grid-template-columns:1fr 1fr 1fr;">
+      <div class="two-col" style="max-width:520px;grid-template-columns:1fr 1fr 1fr 1fr;">
         <div class="field"><label>Freight Load Default %</label><input type="number" id="defFreight" step="0.1"></div>
         <div class="field"><label>Management Load Default %</label><input type="number" id="defMgmt" step="0.1"></div>
         <div class="field"><label>Misc Load Default %</label><input type="number" id="defMisc" step="0.1"></div>
+        <div class="field"><label>Canada GST/HST Default %</label><input type="number" id="defGst" step="0.1"></div>
+      </div>
+      <div class="two-col" style="max-width:400px;">
+        <div class="field"><label>US Schedule Effective Date</label><input type="text" id="effectiveUSInput" style="max-width:200px;"></div>
+        <div class="field"><label>Canada Schedule Effective Date</label><input type="text" id="effectiveCAInput" style="max-width:200px;"></div>
       </div>
       <div class="field"><label>Last Verified Date</label><input type="text" id="lastVerifiedInput" style="max-width:200px;"></div>
 
@@ -393,13 +440,14 @@ button.action.ghost{background:transparent;color:var(--ink);}
 
 <script>
 const DEFAULT_CLASSIFICATIONS = [
-  {id:'knit_tops',    group:'Knit',  label:'T-Shirts / Knit Tops'},
-  {id:'sweaters',     group:'Knit',  label:'Sweaters / Pullovers'},
-  {id:'underwear',    group:'Knit',  label:'Underwear / Boxers'},
-  {id:'woven_shirts', group:'Woven', label:'Dress / Woven Shirts'},
-  {id:'bottoms',      group:'Woven', label:'Trousers / Shorts / Denim'},
-  {id:'suits',        group:'Woven', label:'Suits / Blazers'},
-  {id:'outerwear',    group:'Woven', label:'Jackets / Outerwear'},
+  {id:'knit_tops',    group:'Knit',  label:'6109 — T-Shirts / Tanks (Crew, No Collar)'},
+  {id:'polo_knit',    group:'Knit',  label:'6105 — Polo / Henley / Placket-Front Knit Shirts'},
+  {id:'sweaters',     group:'Knit',  label:'6110 — Sweaters / Pullovers / Sweatshirts / Hoodies'},
+  {id:'underwear',    group:'Knit',  label:'6107 — Underwear / Boxers'},
+  {id:'woven_shirts', group:'Woven', label:'6205 — Dress / Woven Shirts'},
+  {id:'bottoms',      group:'Woven', label:'6203.4x — Trousers / Shorts / Denim'},
+  {id:'suits',        group:'Woven', label:'6203.1x/3x — Suits / Blazers'},
+  {id:'outerwear',    group:'Woven', label:'6201 — Jackets / Outerwear'},
 ];
 
 const DEFAULT_FABRICS = [
@@ -413,8 +461,9 @@ const DEFAULT_FABRICS = [
 // at the cotton HTS rate; CVS (chief-value synthetic blends) at the man-made
 // fiber rate. These are representative starting points, not exact 10-digit
 // HTS lookups — verify before filing.
-const DEFAULT_DUTY_MATRIX = {
+const DEFAULT_DUTY_MATRIX_US = {
   knit_tops:    {cvc:16.5, cvs:32.0, wool:17.0, linen:5.5},
+  polo_knit:    {cvc:19.7, cvs:32.0, wool:17.5, linen:2.8},
   sweaters:     {cvc:16.5, cvs:32.0, wool:16.0, linen:5.5},
   underwear:    {cvc:6.1,  cvs:14.9, wool:14.9, linen:6.1},
   woven_shirts: {cvc:19.7, cvs:27.9, wool:17.5, linen:2.8},
@@ -423,7 +472,7 @@ const DEFAULT_DUTY_MATRIX = {
   outerwear:    {cvc:9.4,  cvs:27.7, wool:18.5, linen:5.5},
 };
 
-const DEFAULT_COUNTRIES = [
+const DEFAULT_COUNTRIES_US = [
   {id:'CN', label:'China',          addl:20.0, dutyFree:false, note:'Sec. 301 apparel surcharge (7.5%) + Sec. 301 forced-labor tariff, 12.5% tier'},
   {id:'VN', label:'Vietnam',        addl:12.5, dutyFree:false, note:'Sec. 301 forced-labor tariff, 12.5% tier'},
   {id:'BD', label:'Bangladesh',     addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
@@ -443,17 +492,63 @@ const DEFAULT_COUNTRIES = [
   {id:'EU', label:'European Union', addl:0.0,  dutyFree:false, note:'15% all-inclusive trade-deal ceiling supersedes; 10% forced-labor tier doesn\u2019t add on top'},
 ];
 
-const DEFAULT_LOADS = {freight:7.0, mgmt:8.0, misc:10.0, lastVerified:'Aug 29, 2026'};
+// Canada duty matrix — Canada's MFN apparel rates run narrower band (~16-18%)
+// than the US and are less split by fiber content. Representative starting
+// points only — verify against the CBSA Customs Tariff before filing.
+const DEFAULT_DUTY_MATRIX_CA = {
+  knit_tops:    {cvc:18.0, cvs:18.0, wool:18.0, linen:17.0},
+  polo_knit:    {cvc:18.0, cvs:18.0, wool:18.0, linen:17.0},
+  sweaters:     {cvc:18.0, cvs:18.0, wool:16.0, linen:17.0},
+  underwear:    {cvc:18.0, cvs:18.0, wool:18.0, linen:17.0},
+  woven_shirts: {cvc:18.0, cvs:18.0, wool:18.0, linen:17.0},
+  bottoms:      {cvc:17.5, cvs:17.5, wool:17.5, linen:16.0},
+  suits:        {cvc:18.0, cvs:18.0, wool:18.0, linen:16.0},
+  outerwear:    {cvc:17.5, cvs:17.5, wool:17.5, linen:16.0},
+};
+
+// Canada tariff treatment by country of origin. Canada has no broad-based
+// stacking surcharge comparable to US Section 301 — "Addl. Surcharge %" is
+// mainly a placeholder for goods-specific anti-dumping/countervailing duties,
+// left at 0 unless you know one applies. dutyFree reflects LDCT (Least
+// Developed Country Tariff) or a Canada FTA, assumed qualifying by default —
+// verify actual rules-of-origin compliance. GPT (General Preferential Tariff)
+// explicitly excludes most apparel/textile goods, so non-LDC/non-FTA
+// countries pay full MFN.
+const DEFAULT_COUNTRIES_CA = [
+  {id:'CN', label:'China',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no FTA or preference program with Canada'},
+  {id:'VN', label:'Vietnam',        addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 CPTPP can reduce duty to 0% but yarn-forward rules of origin are strict and often unmet for apparel'},
+  {id:'BD', label:'Bangladesh',     addl:0.0, dutyFree:false, note:'LDCT preference is being phased out in 2026 \u2014 treat as MFN going forward; verify current status with CBSA'},
+  {id:'KH', label:'Cambodia',       addl:0.0, dutyFree:true,  note:'LDCT (Least Developed Country Tariff) assumed qualifying \u2014 duty-free for apparel'},
+  {id:'IN', label:'India',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 GPT excludes most apparel/textile goods'},
+  {id:'ID', label:'Indonesia',      addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 GPT excludes most apparel/textile goods'},
+  {id:'LK', label:'Sri Lanka',      addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 not an LDC, GPT excludes most apparel'},
+  {id:'PK', label:'Pakistan',       addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 not an LDC, GPT excludes most apparel'},
+  {id:'HN', label:'Honduras',       addl:0.0, dutyFree:true,  note:'Canada\u2013Honduras FTA assumed qualifying \u2014 base duty zeroed'},
+  {id:'NI', label:'Nicaragua',      addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no Canada FTA with Nicaragua'},
+  {id:'MX', label:'Mexico',         addl:0.0, dutyFree:true,  note:'CUSMA assumed qualifying \u2014 base duty zeroed'},
+  {id:'US', label:'United States',  addl:0.0, dutyFree:true,  note:'CUSMA assumed qualifying \u2014 base duty zeroed'},
+  {id:'TR', label:'Turkey',         addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no Canada FTA with Turkey'},
+  {id:'EG', label:'Egypt',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no Canada FTA with Egypt'},
+  {id:'JO', label:'Jordan',         addl:0.0, dutyFree:true,  note:'Canada\u2013Jordan FTA assumed qualifying \u2014 base duty zeroed'},
+  {id:'KE', label:'Kenya',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 not an LDC, GPT excludes most apparel; no AGOA-equivalent program in Canada'},
+  {id:'ET', label:'Ethiopia',       addl:0.0, dutyFree:true,  note:'LDCT (Least Developed Country Tariff) assumed qualifying \u2014 duty-free for apparel'},
+  {id:'EU', label:'European Union', addl:0.0, dutyFree:true,  note:'CETA assumed qualifying \u2014 base duty zeroed'},
+];
+
+const DEFAULT_LOADS = {freight:7.0, mgmt:8.0, misc:10.0, gst:5.0, lastVerified:'Aug 29, 2026', effectiveUS:'Jul 24, 2026', effectiveCA:'Jan 1, 2026'};
 const STORAGE_KEY = 'fob-ldp-rate-tables';
-const COLORS = {fob:'#14213D', duty:'#B23A2F', tariff:'#D98A5F', freight:'#4C7A5D', mgmt:'#8B8577', misc:'#C9A15A'};
+const COLORS = {fob:'#14213D', duty:'#B23A2F', tariff:'#D98A5F', freight:'#4C7A5D', mgmt:'#8B8577', misc:'#C9A15A', gst:'#6B5B95'};
 
 let state = {
   classifications: JSON.parse(JSON.stringify(DEFAULT_CLASSIFICATIONS)),
   fabrics: JSON.parse(JSON.stringify(DEFAULT_FABRICS)),
-  dutyMatrix: JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX)),
-  countries: JSON.parse(JSON.stringify(DEFAULT_COUNTRIES)),
+  dutyMatrixUS: JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX_US)),
+  dutyMatrixCA: JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX_CA)),
+  countriesUS: JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_US)),
+  countriesCA: JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_CA)),
   loads: JSON.parse(JSON.stringify(DEFAULT_LOADS)),
   direction: 'fob2ldp',
+  market: 'US',
 };
 
 const $ = id => document.getElementById(id);
@@ -466,8 +561,10 @@ async function loadStorage(){
       const parsed = JSON.parse(raw);
       if(parsed.classifications) state.classifications = parsed.classifications;
       if(parsed.fabrics) state.fabrics = parsed.fabrics;
-      if(parsed.dutyMatrix) state.dutyMatrix = parsed.dutyMatrix;
-      if(parsed.countries) state.countries = parsed.countries;
+      if(parsed.dutyMatrixUS) state.dutyMatrixUS = parsed.dutyMatrixUS;
+      if(parsed.dutyMatrixCA) state.dutyMatrixCA = parsed.dutyMatrixCA;
+      if(parsed.countriesUS) state.countriesUS = parsed.countriesUS;
+      if(parsed.countriesCA) state.countriesCA = parsed.countriesCA;
       if(parsed.loads) state.loads = parsed.loads;
     }
   }catch(e){ /* no saved data yet — use built-in defaults */ }
@@ -478,8 +575,10 @@ async function saveStorage(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       classifications: state.classifications,
       fabrics: state.fabrics,
-      dutyMatrix: state.dutyMatrix,
-      countries: state.countries,
+      dutyMatrixUS: state.dutyMatrixUS,
+      dutyMatrixCA: state.dutyMatrixCA,
+      countriesUS: state.countriesUS,
+      countriesCA: state.countriesCA,
       loads: state.loads
     }));
     $('saveMsg').textContent = 'Saved to this device.';
@@ -514,7 +613,8 @@ function populateSelects(){
 
   const cooSel = $('coo');
   cooSel.innerHTML = '';
-  state.countries.forEach(c=>{
+  const countries = state.market === 'CA' ? state.countriesCA : state.countriesUS;
+  countries.forEach(c=>{
     const o = document.createElement('option');
     o.value = c.id; o.textContent = c.label;
     cooSel.appendChild(o);
@@ -524,21 +624,39 @@ function populateSelects(){
 function refreshRates(){
   const classId = $('classification').value;
   const fabricId = $('fabric').value;
-  const country = state.countries.find(x=>x.id===$('coo').value);
+  const isCA = state.market === 'CA';
+  const countries = isCA ? state.countriesCA : state.countriesUS;
+  const dutyMatrix = isCA ? state.dutyMatrixCA : state.dutyMatrixUS;
+  const country = countries.find(x=>x.id===$('coo').value);
 
   if(country){
     $('tariffPct').value = country.addl;
-    const zoneTag = country.dutyFree ? '✓ Duty-free zone assumed (verify rules of origin) — ' : '';
+    const zoneLabel = isCA ? '✓ Duty-free (LDCT/FTA) assumed (verify rules of origin) — ' : '✓ Duty-free zone assumed (verify rules of origin) — ';
+    const zoneTag = country.dutyFree ? zoneLabel : '';
     $('cooNote').textContent = zoneTag + (country.note || '');
   }
 
   if(country && country.dutyFree){
     $('dutyPct').value = 0;
   } else {
-    const row = state.dutyMatrix[classId];
+    const row = dutyMatrix[classId];
     const rate = row ? row[fabricId] : undefined;
     $('dutyPct').value = (rate !== undefined) ? rate : 0;
   }
+}
+
+function updateMarketUI(){
+  const isCA = state.market === 'CA';
+  $('gstRow').style.display = isCA ? 'block' : 'none';
+  $('rowGstWrap').style.display = isCA ? 'flex' : 'none';
+  if(isCA){
+    $('gstPct').value = state.loads.gst;
+    $('gstEffectiveNote').textContent = `Effective ${state.loads.effectiveCA}`;
+  }
+  const effectiveDate = isCA ? state.loads.effectiveCA : state.loads.effectiveUS;
+  $('dutyEffectiveNote').textContent = `Effective ${effectiveDate}`;
+  $('tariffEffectiveNote').textContent = `Effective ${effectiveDate}`;
+  $('tariffFieldLabel').textContent = isCA ? 'Addl. Surcharge %' : 'Additional Tariff %';
 }
 
 function updateDirectionUI(){
@@ -553,35 +671,42 @@ function updateDirectionUI(){
 }
 
 function calculate(){
+  const isCA = state.market === 'CA';
   const dutyPct = parseFloat($('dutyPct').value) || 0;
   const tariffPct = parseFloat($('tariffPct').value) || 0;
   const freightPct = parseFloat($('freightPct').value) || 0;
   const mgmtPct = parseFloat($('mgmtPct').value) || 0;
   const miscPct = parseFloat($('miscPct').value) || 0;
-  const totalPct = (dutyPct + tariffPct + freightPct + mgmtPct + miscPct) / 100;
+  const gstPct = isCA ? (parseFloat($('gstPct').value) || 0) : 0;
   const costVal = parseFloat($('costInput').value) || 0;
+
+  // GST compounds on (FOB + Duty) per CBSA rules; everything else is additive on FOB.
+  const additivePct = (dutyPct + tariffPct + freightPct + mgmtPct + miscPct) / 100;
+  const k = (1 + additivePct) + (gstPct / 100) * (1 + dutyPct / 100);
 
   let fob, ldp;
   if(state.direction === 'fob2ldp'){
     fob = costVal;
-    ldp = fob * (1 + totalPct);
+    ldp = fob * k;
   } else {
     ldp = costVal;
-    fob = ldp / (1 + totalPct);
+    fob = ldp / k;
   }
   const dutyAmt = fob * dutyPct / 100;
   const tariffAmt = fob * tariffPct / 100;
   const freightAmt = fob * freightPct / 100;
   const mgmtAmt = fob * mgmtPct / 100;
   const miscAmt = fob * miscPct / 100;
+  const gstAmt = isCA ? (fob + dutyAmt) * gstPct / 100 : 0;
 
   const isFob = state.direction === 'fob2ldp';
   const sign = isFob ? '+' : '−';
+  const tariffLabel = isCA ? 'Addl. Surcharge' : 'Additional Tariff';
 
   $('rowFob').textContent = fmt(costVal);
   $('rowDutyLabel').textContent = `${sign} Duty (${dutyPct.toFixed(1)}%)`;
   $('rowDuty').textContent = fmt(dutyAmt);
-  $('rowTariffLabel').textContent = `${sign} Additional Tariff (${tariffPct.toFixed(1)}%)`;
+  $('rowTariffLabel').textContent = `${sign} ${tariffLabel} (${tariffPct.toFixed(1)}%)`;
   $('rowTariff').textContent = fmt(tariffAmt);
   $('rowFreightLabel').textContent = `${sign} Freight Load (${freightPct.toFixed(1)}%)`;
   $('rowFreight').textContent = fmt(freightAmt);
@@ -589,18 +714,23 @@ function calculate(){
   $('rowMgmt').textContent = fmt(mgmtAmt);
   $('rowMiscLabel').textContent = `${sign} Misc Load (${miscPct.toFixed(1)}%)`;
   $('rowMisc').textContent = fmt(miscAmt);
+  if(isCA){
+    $('rowGstLabel').textContent = `${sign} GST/HST (${gstPct.toFixed(1)}%)`;
+    $('rowGst').textContent = fmt(gstAmt);
+  }
   $('rowTotal').textContent = fmt(isFob ? ldp : fob);
 
   // stack bar
-  const total = fob + dutyAmt + tariffAmt + freightAmt + mgmtAmt + miscAmt;
   const segs = [
     {v:fob, c:COLORS.fob, label:'FOB'},
     {v:dutyAmt, c:COLORS.duty, label:'Duty'},
-    {v:tariffAmt, c:COLORS.tariff, label:'Tariff'},
+    {v:tariffAmt, c:COLORS.tariff, label:isCA ? 'Surcharge' : 'Tariff'},
     {v:freightAmt, c:COLORS.freight, label:'Freight'},
     {v:mgmtAmt, c:COLORS.mgmt, label:'Mgmt'},
     {v:miscAmt, c:COLORS.misc, label:'Misc'},
   ];
+  if(isCA) segs.push({v:gstAmt, c:COLORS.gst, label:'GST/HST'});
+  const total = segs.reduce((sum,s)=>sum+s.v, 0);
   $('stackBar').innerHTML = segs.map(s=>{
     const pct = total>0 ? (s.v/total*100) : 0;
     return `<div style="width:${pct}%;background:${s.c};"></div>`;
@@ -608,18 +738,20 @@ function calculate(){
   $('legend').innerHTML = segs.map(s=>`<span><i style="background:${s.c};"></i>${s.label}</span>`).join('');
 }
 
-function renderDutyMatrixTable(){
-  const head = $('dutyMatrixHead');
+function renderDutyMatrixTable(market){
+  const isCA = market === 'CA';
+  const dutyMatrix = isCA ? state.dutyMatrixCA : state.dutyMatrixUS;
+  const head = $(isCA ? 'dutyMatrixHeadCA' : 'dutyMatrixHeadUS');
   head.innerHTML = '<th>Classification</th>' + state.fabrics.map(f=>`<th>${f.label}</th>`).join('');
 
-  const tbody = document.querySelector('#dutyMatrixTable tbody');
+  const tbody = document.querySelector(isCA ? '#dutyMatrixTableCA tbody' : '#dutyMatrixTableUS tbody');
   tbody.innerHTML = '';
   state.classifications.forEach(c=>{
-    if(!state.dutyMatrix[c.id]) state.dutyMatrix[c.id] = {};
+    if(!dutyMatrix[c.id]) dutyMatrix[c.id] = {};
     const tr = document.createElement('tr');
     let cells = `<td>${c.label}</td>`;
     state.fabrics.forEach(f=>{
-      const val = state.dutyMatrix[c.id][f.id] !== undefined ? state.dutyMatrix[c.id][f.id] : 0;
+      const val = dutyMatrix[c.id][f.id] !== undefined ? dutyMatrix[c.id][f.id] : 0;
       cells += `<td><input type="number" step="0.1" data-class="${c.id}" data-fabric="${f.id}" value="${val}"></td>`;
     });
     tr.innerHTML = cells;
@@ -628,28 +760,37 @@ function renderDutyMatrixTable(){
   tbody.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener('change', e=>{
       const {class: classId, fabric: fabricId} = e.target.dataset;
-      state.dutyMatrix[classId][fabricId] = parseFloat(e.target.value) || 0;
+      dutyMatrix[classId][fabricId] = parseFloat(e.target.value) || 0;
+      if(state.market === market) refreshRates();
+      calculate();
     });
   });
 }
 
-function renderCooTable(){
-  const tbody = document.querySelector('#cooTable tbody');
+function renderCooTable(market){
+  const isCA = market === 'CA';
+  const countries = isCA ? state.countriesCA : state.countriesUS;
+  const tbody = document.querySelector(isCA ? '#cooTableCA tbody' : '#cooTableUS tbody');
   tbody.innerHTML = '';
-  state.countries.forEach((c,i)=>{
+  countries.forEach((c,i)=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${c.label}</td><td style="text-align:center;"><input type="checkbox" data-idx="${i}" data-field="dutyFree" ${c.dutyFree ? 'checked' : ''}></td><td><input type="number" step="0.1" data-idx="${i}" data-field="addl" value="${c.addl}"></td><td class="note">${c.note}</td>`;
     tbody.appendChild(tr);
   });
   tbody.querySelectorAll('input[type=number]').forEach(inp=>{
     inp.addEventListener('change', e=>{
-      state.countries[e.target.dataset.idx].addl = parseFloat(e.target.value) || 0;
+      countries[e.target.dataset.idx].addl = parseFloat(e.target.value) || 0;
+      if(state.market === market) refreshRates();
+      calculate();
     });
   });
   tbody.querySelectorAll('input[type=checkbox]').forEach(inp=>{
     inp.addEventListener('change', e=>{
-      state.countries[e.target.dataset.idx].dutyFree = e.target.checked;
-      if($('coo').value === state.countries[e.target.dataset.idx].id) refreshRates();
+      countries[e.target.dataset.idx].dutyFree = e.target.checked;
+      if(state.market === market && $('coo').value === countries[e.target.dataset.idx].id){
+        refreshRates();
+        calculate();
+      }
     });
   });
 }
@@ -658,6 +799,9 @@ function renderLoadsAndMeta(){
   $('defFreight').value = state.loads.freight;
   $('defMgmt').value = state.loads.mgmt;
   $('defMisc').value = state.loads.misc;
+  $('defGst').value = state.loads.gst;
+  $('effectiveUSInput').value = state.loads.effectiveUS;
+  $('effectiveCAInput').value = state.loads.effectiveCA;
   $('lastVerifiedInput').value = state.loads.lastVerified;
   $('lastVerified').textContent = state.loads.lastVerified;
 }
@@ -671,11 +815,19 @@ function wireEvents(){
     });
   });
 
+  $('market').addEventListener('change', ()=>{
+    state.market = $('market').value;
+    populateSelects();
+    updateMarketUI();
+    refreshRates();
+    calculate();
+  });
+
   $('classification').addEventListener('change', ()=>{ refreshRates(); calculate(); });
   $('fabric').addEventListener('change', ()=>{ refreshRates(); calculate(); });
   $('coo').addEventListener('change', ()=>{ refreshRates(); calculate(); });
 
-  ['costInput','dutyPct','tariffPct','freightPct','mgmtPct','miscPct'].forEach(id=>{
+  ['costInput','dutyPct','tariffPct','freightPct','mgmtPct','miscPct','gstPct'].forEach(id=>{
     $(id).addEventListener('input', calculate);
   });
 
@@ -687,25 +839,34 @@ function wireEvents(){
     state.loads.freight = parseFloat($('defFreight').value) || 0;
     state.loads.mgmt = parseFloat($('defMgmt').value) || 0;
     state.loads.misc = parseFloat($('defMisc').value) || 0;
+    state.loads.gst = parseFloat($('defGst').value) || 0;
+    state.loads.effectiveUS = $('effectiveUSInput').value || '';
+    state.loads.effectiveCA = $('effectiveCAInput').value || '';
     state.loads.lastVerified = $('lastVerifiedInput').value || '';
     saveStorage();
     $('lastVerified').textContent = state.loads.lastVerified;
+    updateMarketUI();
   });
 
   $('resetDefaults').addEventListener('click', async ()=>{
     state.classifications = JSON.parse(JSON.stringify(DEFAULT_CLASSIFICATIONS));
     state.fabrics = JSON.parse(JSON.stringify(DEFAULT_FABRICS));
-    state.dutyMatrix = JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX));
-    state.countries = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES));
+    state.dutyMatrixUS = JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX_US));
+    state.dutyMatrixCA = JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX_CA));
+    state.countriesUS = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_US));
+    state.countriesCA = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_CA));
     state.loads = JSON.parse(JSON.stringify(DEFAULT_LOADS));
     try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
     populateSelects();
+    updateMarketUI();
     refreshRates();
     $('freightPct').value = state.loads.freight;
     $('mgmtPct').value = state.loads.mgmt;
     $('miscPct').value = state.loads.misc;
-    renderDutyMatrixTable();
-    renderCooTable();
+    renderDutyMatrixTable('US');
+    renderDutyMatrixTable('CA');
+    renderCooTable('US');
+    renderCooTable('CA');
     renderLoadsAndMeta();
     calculate();
     $('saveMsg').textContent = 'Reset to built-in defaults.';
@@ -715,13 +876,17 @@ function wireEvents(){
 
 async function init(){
   await loadStorage();
+  $('market').value = state.market;
   populateSelects();
+  updateMarketUI();
   refreshRates();
   $('freightPct').value = state.loads.freight;
   $('mgmtPct').value = state.loads.mgmt;
   $('miscPct').value = state.loads.misc;
-  renderDutyMatrixTable();
-  renderCooTable();
+  renderDutyMatrixTable('US');
+  renderDutyMatrixTable('CA');
+  renderCooTable('US');
+  renderCooTable('CA');
   renderLoadsAndMeta();
   updateDirectionUI();
   wireEvents();
