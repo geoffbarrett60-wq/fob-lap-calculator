@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOB ⇄ LDP Cost Desk</title>
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAFI0lEQVRYhb2WWUxUVxjHf3PnDjAiMgjKDIt7QWUoKqKyKYIUTX2oUpcHiw/aJk1Nm9YYjaZNm9Rau9iHLg/aJtomXUKb1mosook6I9pSbWxcELSgCLNAWUQY1HtnTh9m7hSXpFxomKcz59yc33e+8//+3zG8tG2POF7TgKKqIATBnwgNRXhODBgH10NjIYLfwSNzYuC60GZE6HPBC6PaTkrHaxoozUvDZJRGHD5L7iuSFFWluuYqpfnpmGRpROECgYwQqKo/GETedI7V1KEo6n/Cs2akYk9LJjnRgilCptpxkdoLf+mCCwGStrmi+KmuqaM0P52Y6CiioyNACCxjRrHl+af48sMN7Nu1nqL5aYCgfGk2m9YX426/TfpkK+9sKdcNB4Gk3fnSRTP57K21vLy+hBNfv0bFMwuQJAN7d67jyRmp7PvGgcvTxfvbV5M1YwI3XR2YZJlWTycCQUOTVzdcCJC0P5YYM3MyJrB7bxXLN37CjZa/saclMXXieD7/zoGjtp6dnx7m/n0/yxZn0uLuQJIMrFuRh893j5ysKRTmPKELLgBZE9wtVycAq5bNZczoSC5fc5NitQAQIRsBwX1Fpa2jh9jRZppbOwDY/8NpfvvjGs7K15k3axqO2vpBwxEhEQI0u4MB9PT6+LH6PNea2nC33+a5lfmsLJvDyV+vMiklnmRrHJWHa8MBb964lNiYFbi8nRw8dk4XPJSBYMrc3m78gQCNze0cdVwOq337e5Xs3FLOyW+3IkkGDh27QOWRWu4pKm9/fBC3t5sbLe20eDp1w4UQyFqpKaofT3sPSYlxD9S0o7aBsoo9rCybzaHjF+ju6Qtv8v2RWt13PhAuAMOknAqtuLHEmOm+048IBHjYZGSjRFlhBkedl0I+oU/tj4PDAB8QQtDV43ssPGhWKlXOS5QVZmCSpf8FLkTYBwZnr6qiUuW4SFmhHVmWhg0XgKTX21XFzy+Oi5QttGMyGocFJ5iBwcO1tKuqStWpYBAvxnY5hgoXgDTUrqaqKqnnT5wqKbAvNMjGIcFDzUg/XEt7puhe1H72LAm5uUihIPTAIXQFw+nnfkWl/cwZEnJzMciyLnioGQ0drm3kV1TazpxlXO4CDLI8aLjgIREOBa6lPaAowSDyQpkIwU1j44jLmImtpJiE7GwMkiEMFwKMsVb7m8OFIwQxaWlYMjOJjI8naUkpdxqbUPp6yXl3F7aiIoxmM1PWrCGgqnRdufLQg0QnPHpCKjO3bUWOGR1O7cTVq5i0djXG6GiiJ05g3kcfYB43jn6Ph57GJv7ctZve5pvETpv67wEAaUgnB+LnzsVstYUF1+/xoPb2cX3/Ac5t34FkNDK1Yh0+bxtj7XYKv9hHhCWWpp9+Du8hBNp7QF/afZ7g88tstdJdX48A+j1ubMXFCIMB1edD9fno97YRabEgRZj4/dU36G1pBRF4QIzyUO5c3L3Lva4uomyJYbX7XG6MUZHEZ2URn52NHDMGj9NJRNxYkpaUQCDwCDyUAf2CE4DP7SZh3nyixicSZbNy/cBXCH+AtI0b6K6r49yOHfQ03kAyuzm96RUs09Pp83oJhFq5VgmGlKxnhV64EILk5U9jHp+Iz+PC5/LSdfkSwq/iV/wPALQ9DLKMraAAl9OJX1GDhxZgSMkqF3rhgzWZgaIVAiTZiK2ggFank4CiBqtgpOCaY7Y6nSQVFoQdUxopuLYWUFRaHafDQRg3T45fPHuE4JrUAn4/d261kFyYzz9Y4tppCyAIqwAAAABJRU5ErkJggg==">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FOB/LDP Calc">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14213D">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#14213D;
+  --paper:#EDE7DA;
+  --paper-2:#E2DAC7;
+  --panel:#F6F3EA;
+  --stamp:#B23A2F;
+  --thread:#4C7A5D;
+  --line:#C9C0AA;
+  --muted:#6B6455;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  padding:28px 20px 60px;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:1040px;margin:0 auto;}
+
+header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:14px;
+  margin-bottom:16px;
+}
+header h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:26px;
+  letter-spacing:-0.02em;
+  margin:0;
+  font-weight:700;
+}
+header .tag{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.banner{
+  background:var(--paper-2);
+  border:1px solid var(--line);
+  border-left:4px solid var(--stamp);
+  border-radius:6px;
+  padding:10px 14px;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-bottom:20px;
+  line-height:1.5;
+}
+.banner b{color:var(--ink);}
+
+.direction-toggle{
+  display:flex;
+  border:2px solid var(--ink);
+  border-radius:999px;
+  overflow:hidden;
+  width:fit-content;
+  margin-bottom:20px;
+}
+.direction-toggle button{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;
+  font-weight:600;
+  padding:9px 18px;
+  border:none;
+  background:transparent;
+  color:var(--ink);
+  cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.direction-toggle button.active{
+  background:var(--ink);
+  color:var(--paper);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+@media (max-width:760px){
+  .grid{grid-template-columns:1fr;}
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px;
+}
+.panel h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin:0 0 16px;
+  color:var(--muted);
+}
+
+.field{margin-bottom:16px;}
+.field label{
+  display:block;
+  font-size:12px;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:5px;
+}
+.field .sub{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:4px;
+  line-height:1.4;
+}
+select,input[type=number],input[type=text]{
+  width:100%;
+  padding:10px 11px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14px;
+  border:1.5px solid var(--line);
+  border-radius:6px;
+  background:#fff;
+  color:var(--ink);
+}
+select:focus,input:focus{outline:2px solid var(--ink);outline-offset:1px;}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.pct-row{display:flex;align-items:center;gap:10px;}
+.pct-row input{flex:1;}
+.pct-row .lbl{font-size:12px;color:var(--muted);width:auto;min-width:110px;}
+
+/* Result / manifest */
+.manifest{
+  position:relative;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px 22px 26px;
+}
+.manifest-row{
+  display:flex;
+  justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13.5px;
+  padding:7px 0;
+  border-bottom:1px dashed var(--line);
+}
+.manifest-row.sub{color:var(--muted);font-size:12.5px;}
+.manifest-row .amt{font-weight:600;}
+.manifest-row.total{
+  border-bottom:none;
+  border-top:2px solid var(--ink);
+  margin-top:6px;
+  padding-top:12px;
+  font-size:18px;
+  font-weight:700;
+  color:var(--ink);
+}
+.manifest-row.total .amt{color:var(--stamp);}
+
+.stack-bar{
+  display:flex;
+  height:18px;
+  border-radius:4px;
+  overflow:hidden;
+  margin:16px 0 4px;
+  border:1px solid var(--line);
+}
+.stack-bar div{height:100%;}
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 16px;
+  font-size:10.5px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+.stamp{
+  position:absolute;
+  top:16px;
+  right:18px;
+  border:3px solid var(--stamp);
+  color:var(--stamp);
+  border-radius:8px;
+  padding:4px 10px;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:.08em;
+  transform:rotate(6deg);
+  opacity:.85;
+  white-space:nowrap;
+}
+
+/* Rate drawer */
+.drawer{
+  margin-top:26px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--panel);
+  overflow:hidden;
+}
+.drawer-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  cursor:pointer;
+  user-select:none;
+}
+.drawer-head h2{margin:0;font-size:13px;}
+.drawer-head .chev{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--muted);transition:transform .15s;}
+.drawer-body{
+  padding:0 20px 20px;
+  display:none;
+}
+.drawer.open .drawer-body{display:block;}
+.drawer.open .chev{transform:rotate(180deg);}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:18px;}
+#dutyMatrixTable{display:block;overflow-x:auto;white-space:nowrap;}
+#dutyMatrixTable thead,#dutyMatrixTable tbody{display:table;width:100%;table-layout:auto;}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+th{font-family:'Space Grotesk',sans-serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+td input{width:70px;padding:5px 6px;font-size:12.5px;}
+td.note{color:var(--muted);font-size:11px;max-width:220px;}
+
+.drawer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+button.action{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  font-weight:600;
+  padding:9px 16px;
+  border-radius:6px;
+  border:1.5px solid var(--ink);
+  background:var(--ink);
+  color:var(--paper);
+  cursor:pointer;
+}
+button.action.ghost{background:transparent;color:var(--ink);}
+.save-msg{font-size:11.5px;color:var(--thread);margin-left:4px;align-self:center;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>FOB ⇄ LDP Cost Desk</h1>
+    <div class="tag">Men's Apparel · Costing Tool</div>
+  </header>
+
+  <div class="banner">
+    <b>Rates are editable placeholders, not a compliance source.</b> Duty layers (Section 301 / reciprocal / trade-preference programs) have changed several times in the past year and vary by exact 10-digit HTS code and origin qualification. Open <b>Rate Tables</b> below to review or update the figures, and confirm anything you rely on for filing with your customs broker or the current HTSUS.
+  </div>
+
+  <div class="direction-toggle" id="dirToggle">
+    <button data-dir="fob2ldp" class="active">FOB → LDP</button>
+    <button data-dir="ldp2fob">LDP → FOB</button>
+  </div>
+
+  <div class="grid">
+    <!-- INPUT PANEL -->
+    <section class="panel">
+      <h2>Inputs</h2>
+
+      <div class="field">
+        <label for="classification">Classification</label>
+        <select id="classification"></select>
+      </div>
+
+      <div class="field">
+        <label for="fabric">Fabric</label>
+        <select id="fabric"></select>
+      </div>
+
+      <div class="field">
+        <label for="coo">Country of Origin (COO)</label>
+        <select id="coo"></select>
+        <div class="sub" id="cooNote"></div>
+      </div>
+
+      <div class="field">
+        <label id="costLabel" for="costInput">FOB Cost (per unit, USD)</label>
+        <input type="number" id="costInput" step="0.01" min="0" value="10.00">
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>Duty Rate %</label>
+          <input type="number" id="dutyPct" step="0.1">
+        </div>
+        <div class="field">
+          <label>Additional Tariff %</label>
+          <input type="number" id="tariffPct" step="0.1">
+        </div>
+      </div>
+
+      <div class="two-col" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="field">
+          <label>Freight Load %</label>
+          <input type="number" id="freightPct" step="0.1">
+        </div>
+        <div class="field">
+          <label>Management Load %</label>
+          <input type="number" id="mgmtPct" step="0.1">
+        </div>
+        <div class="field">
+          <label>Misc Load %</label>
+          <input type="number" id="miscPct" step="0.1">
+        </div>
+      </div>
+      <div class="sub">Duty and tariff auto-fill from the rate tables when you change classification or COO — all four fields can be overridden per calculation.</div>
+    </section>
+
+    <!-- RESULT PANEL -->
+    <section class="manifest">
+      <div class="stamp" id="stampLabel">LDP</div>
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px;">Cost Buildup</h2>
+
+      <div class="manifest-row"><span id="rowFobLabel">FOB Cost</span><span class="amt" id="rowFob">$0.00</span></div>
+      <div class="manifest-row sub"><span id="rowDutyLabel">+ Duty (0%)</span><span class="amt" id="rowDuty">$0.00</span></div>
+      <div class="manifest-row sub"><span id="rowTariffLabel">+ Additional Tariff (0%)</span><span class="amt" id="rowTariff">$0.00</span></div>
+      <div class="manifest-row sub"><span id="rowFreightLabel">+ Freight Load (0%)</span><span class="amt" id="rowFreight">$0.00</span></div>
+      <div class="manifest-row sub"><span id="rowMgmtLabel">+ Management Load (0%)</span><span class="amt" id="rowMgmt">$0.00</span></div>
+      <div class="manifest-row sub"><span id="rowMiscLabel">+ Misc Load (0%)</span><span class="amt" id="rowMisc">$0.00</span></div>
+      <div class="manifest-row total"><span id="rowTotalLabel">LDP Cost</span><span class="amt" id="rowTotal">$0.00</span></div>
+
+      <div class="stack-bar" id="stackBar"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+  </div>
+
+  <!-- RATE TABLES DRAWER -->
+  <div class="drawer" id="ratesDrawer">
+    <div class="drawer-head" id="ratesHead">
+      <h2>Rate Tables (editable)</h2>
+      <span class="chev">▾</span>
+    </div>
+    <div class="drawer-body">
+      <div class="sub" style="margin-bottom:12px;">Last verified: <span id="lastVerified">—</span>. Edit any figure below, then <b>Save as My Defaults</b> to keep it on this device. This only affects your own copy — the built-in master rates are unchanged for everyone else, and <b>Reset to Built-In Defaults</b> always brings them back.</div>
+
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Duty Rate — by Classification × Fabric</h3>
+      <table id="dutyMatrixTable"><thead><tr id="dutyMatrixHead"><th>Classification</th></tr></thead><tbody></tbody></table>
+
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Country of Origin — Additional Tariff</h3>
+      <table id="cooTable"><thead><tr><th>Country</th><th>Duty-Free Zone?</th><th>Addl. %</th><th>Note</th></tr></thead><tbody></tbody></table>
+
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Default Loads</h3>
+      <div class="two-col" style="max-width:400px;grid-template-columns:1fr 1fr 1fr;">
+        <div class="field"><label>Freight Load Default %</label><input type="number" id="defFreight" step="0.1"></div>
+        <div class="field"><label>Management Load Default %</label><input type="number" id="defMgmt" step="0.1"></div>
+        <div class="field"><label>Misc Load Default %</label><input type="number" id="defMisc" step="0.1"></div>
+      </div>
+      <div class="field"><label>Last Verified Date</label><input type="text" id="lastVerifiedInput" style="max-width:200px;"></div>
+
+      <div class="drawer-actions">
+        <button class="action" id="saveDefaults">Save as My Defaults</button>
+        <button class="action ghost" id="resetDefaults">Reset to Built-In Defaults</button>
+        <span class="save-msg" id="saveMsg"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DEFAULT_CLASSIFICATIONS = [
+  {id:'knit_tops',    group:'Knit',  label:'T-Shirts / Knit Tops'},
+  {id:'sweaters',     group:'Knit',  label:'Sweaters / Pullovers'},
+  {id:'underwear',    group:'Knit',  label:'Underwear / Boxers'},
+  {id:'woven_shirts', group:'Woven', label:'Dress / Woven Shirts'},
+  {id:'bottoms',      group:'Woven', label:'Trousers / Shorts / Denim'},
+  {id:'suits',        group:'Woven', label:'Suits / Blazers'},
+  {id:'outerwear',    group:'Woven', label:'Jackets / Outerwear'},
+];
+
+const DEFAULT_FABRICS = [
+  {id:'cvc',   label:'CVC (Cotton Rich)'},
+  {id:'cvs',   label:'CVS (Synthetic)'},
+  {id:'wool',  label:'Wool'},
+  {id:'linen', label:'Linen'},
+];
+
+// Duty % by classification -> fabric. CVC (chief-value cotton blends) is priced
+// at the cotton HTS rate; CVS (chief-value synthetic blends) at the man-made
+// fiber rate. These are representative starting points, not exact 10-digit
+// HTS lookups — verify before filing.
+const DEFAULT_DUTY_MATRIX = {
+  knit_tops:    {cvc:16.5, cvs:32.0, wool:17.0, linen:5.5},
+  sweaters:     {cvc:16.5, cvs:32.0, wool:16.0, linen:5.5},
+  underwear:    {cvc:6.1,  cvs:14.9, wool:14.9, linen:6.1},
+  woven_shirts: {cvc:19.7, cvs:27.9, wool:17.5, linen:2.8},
+  bottoms:      {cvc:16.6, cvs:27.9, wool:16.3, linen:2.8},
+  suits:        {cvc:9.4,  cvs:27.3, wool:17.5, linen:2.8},
+  outerwear:    {cvc:9.4,  cvs:27.7, wool:18.5, linen:5.5},
+};
+
+const DEFAULT_COUNTRIES = [
+  {id:'CN', label:'China',          addl:20.0, dutyFree:false, note:'Sec. 301 apparel surcharge (7.5%) + Sec. 301 forced-labor tariff, 12.5% tier'},
+  {id:'VN', label:'Vietnam',        addl:12.5, dutyFree:false, note:'Sec. 301 forced-labor tariff, 12.5% tier'},
+  {id:'BD', label:'Bangladesh',     addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
+  {id:'KH', label:'Cambodia',       addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
+  {id:'IN', label:'India',          addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
+  {id:'ID', label:'Indonesia',      addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
+  {id:'LK', label:'Sri Lanka',      addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
+  {id:'PK', label:'Pakistan',       addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
+  {id:'HN', label:'Honduras',       addl:10.0, dutyFree:true,  note:'CAFTA-DR assumed qualifying \u2014 base duty zeroed. Forced-labor 10% tier still applies on top'},
+  {id:'NI', label:'Nicaragua',      addl:12.5, dutyFree:true,  note:'CAFTA-DR assumed qualifying \u2014 base duty zeroed. Forced-labor 12.5% tier still applies (not on the 10% list)'},
+  {id:'MX', label:'Mexico',         addl:0.0,  dutyFree:true,  note:'USMCA assumed qualifying \u2014 base duty zeroed, and USMCA carries its own forced-labor-tariff exemption'},
+  {id:'TR', label:'Turkey',         addl:12.5, dutyFree:false, note:'Sec. 301 forced-labor tariff, 12.5% tier (not on the 10% list)'},
+  {id:'EG', label:'Egypt',          addl:12.5, dutyFree:true,  note:'QIZ assumed qualifying \u2014 base duty zeroed. Forced-labor 12.5% tier still applies on top \u2014 not fully duty-free'},
+  {id:'JO', label:'Jordan',         addl:10.0, dutyFree:true,  note:'US\u2013Jordan FTA assumed qualifying \u2014 base duty zeroed. Forced-labor 10% tier still applies on top'},
+  {id:'KE', label:'Kenya',          addl:0.0,  dutyFree:true,  note:'AGOA assumed qualifying \u2014 base duty zeroed. Not on the Sec. 301 forced-labor list'},
+  {id:'ET', label:'Ethiopia',       addl:0.0,  dutyFree:false, note:'AGOA suspended, not a 2026 beneficiary \u2014 standard MFN duty applies. Not on the Sec. 301 forced-labor list'},
+  {id:'EU', label:'European Union', addl:0.0,  dutyFree:false, note:'15% all-inclusive trade-deal ceiling supersedes; 10% forced-labor tier doesn\u2019t add on top'},
+];
+
+const DEFAULT_LOADS = {freight:7.0, mgmt:8.0, misc:10.0, lastVerified:'Aug 29, 2026'};
+const STORAGE_KEY = 'fob-ldp-rate-tables';
+const COLORS = {fob:'#14213D', duty:'#B23A2F', tariff:'#D98A5F', freight:'#4C7A5D', mgmt:'#8B8577', misc:'#C9A15A'};
+
+let state = {
+  classifications: JSON.parse(JSON.stringify(DEFAULT_CLASSIFICATIONS)),
+  fabrics: JSON.parse(JSON.stringify(DEFAULT_FABRICS)),
+  dutyMatrix: JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX)),
+  countries: JSON.parse(JSON.stringify(DEFAULT_COUNTRIES)),
+  loads: JSON.parse(JSON.stringify(DEFAULT_LOADS)),
+  direction: 'fob2ldp',
+};
+
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + (isFinite(n) ? n.toFixed(2) : '0.00');
+
+async function loadStorage(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed.classifications) state.classifications = parsed.classifications;
+      if(parsed.fabrics) state.fabrics = parsed.fabrics;
+      if(parsed.dutyMatrix) state.dutyMatrix = parsed.dutyMatrix;
+      if(parsed.countries) state.countries = parsed.countries;
+      if(parsed.loads) state.loads = parsed.loads;
+    }
+  }catch(e){ /* no saved data yet — use built-in defaults */ }
+}
+
+async function saveStorage(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      classifications: state.classifications,
+      fabrics: state.fabrics,
+      dutyMatrix: state.dutyMatrix,
+      countries: state.countries,
+      loads: state.loads
+    }));
+    $('saveMsg').textContent = 'Saved to this device.';
+    setTimeout(()=>{$('saveMsg').textContent='';}, 2500);
+  }catch(e){
+    $('saveMsg').textContent = 'Could not save — try again.';
+  }
+}
+
+function populateSelects(){
+  const classSel = $('classification');
+  classSel.innerHTML = '';
+  const groups = {};
+  state.classifications.forEach(c=>{ (groups[c.group] = groups[c.group]||[]).push(c); });
+  Object.keys(groups).forEach(g=>{
+    const og = document.createElement('optgroup'); og.label = g;
+    groups[g].forEach(c=>{
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = c.label;
+      og.appendChild(o);
+    });
+    classSel.appendChild(og);
+  });
+
+  const fabricSel = $('fabric');
+  fabricSel.innerHTML = '';
+  state.fabrics.forEach(f=>{
+    const o = document.createElement('option');
+    o.value = f.id; o.textContent = f.label;
+    fabricSel.appendChild(o);
+  });
+
+  const cooSel = $('coo');
+  cooSel.innerHTML = '';
+  state.countries.forEach(c=>{
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.label;
+    cooSel.appendChild(o);
+  });
+}
+
+function refreshRates(){
+  const classId = $('classification').value;
+  const fabricId = $('fabric').value;
+  const country = state.countries.find(x=>x.id===$('coo').value);
+
+  if(country){
+    $('tariffPct').value = country.addl;
+    const zoneTag = country.dutyFree ? '✓ Duty-free zone assumed (verify rules of origin) — ' : '';
+    $('cooNote').textContent = zoneTag + (country.note || '');
+  }
+
+  if(country && country.dutyFree){
+    $('dutyPct').value = 0;
+  } else {
+    const row = state.dutyMatrix[classId];
+    const rate = row ? row[fabricId] : undefined;
+    $('dutyPct').value = (rate !== undefined) ? rate : 0;
+  }
+}
+
+function updateDirectionUI(){
+  const isFob = state.direction === 'fob2ldp';
+  $('costLabel').textContent = isFob ? 'FOB Cost (per unit, USD)' : 'LDP Cost (per unit, USD)';
+  $('rowFobLabel').textContent = isFob ? 'FOB Cost' : 'LDP Cost';
+  $('rowTotalLabel').textContent = isFob ? 'LDP Cost' : 'Target FOB Cost';
+  $('stampLabel').textContent = isFob ? 'LDP' : 'TARGET FOB';
+  document.querySelectorAll('#dirToggle button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.dir === state.direction);
+  });
+}
+
+function calculate(){
+  const dutyPct = parseFloat($('dutyPct').value) || 0;
+  const tariffPct = parseFloat($('tariffPct').value) || 0;
+  const freightPct = parseFloat($('freightPct').value) || 0;
+  const mgmtPct = parseFloat($('mgmtPct').value) || 0;
+  const miscPct = parseFloat($('miscPct').value) || 0;
+  const totalPct = (dutyPct + tariffPct + freightPct + mgmtPct + miscPct) / 100;
+  const costVal = parseFloat($('costInput').value) || 0;
+
+  let fob, ldp;
+  if(state.direction === 'fob2ldp'){
+    fob = costVal;
+    ldp = fob * (1 + totalPct);
+  } else {
+    ldp = costVal;
+    fob = ldp / (1 + totalPct);
+  }
+  const dutyAmt = fob * dutyPct / 100;
+  const tariffAmt = fob * tariffPct / 100;
+  const freightAmt = fob * freightPct / 100;
+  const mgmtAmt = fob * mgmtPct / 100;
+  const miscAmt = fob * miscPct / 100;
+
+  const isFob = state.direction === 'fob2ldp';
+  const sign = isFob ? '+' : '−';
+
+  $('rowFob').textContent = fmt(costVal);
+  $('rowDutyLabel').textContent = `${sign} Duty (${dutyPct.toFixed(1)}%)`;
+  $('rowDuty').textContent = fmt(dutyAmt);
+  $('rowTariffLabel').textContent = `${sign} Additional Tariff (${tariffPct.toFixed(1)}%)`;
+  $('rowTariff').textContent = fmt(tariffAmt);
+  $('rowFreightLabel').textContent = `${sign} Freight Load (${freightPct.toFixed(1)}%)`;
+  $('rowFreight').textContent = fmt(freightAmt);
+  $('rowMgmtLabel').textContent = `${sign} Management Load (${mgmtPct.toFixed(1)}%)`;
+  $('rowMgmt').textContent = fmt(mgmtAmt);
+  $('rowMiscLabel').textContent = `${sign} Misc Load (${miscPct.toFixed(1)}%)`;
+  $('rowMisc').textContent = fmt(miscAmt);
+  $('rowTotal').textContent = fmt(isFob ? ldp : fob);
+
+  // stack bar
+  const total = fob + dutyAmt + tariffAmt + freightAmt + mgmtAmt + miscAmt;
+  const segs = [
+    {v:fob, c:COLORS.fob, label:'FOB'},
+    {v:dutyAmt, c:COLORS.duty, label:'Duty'},
+    {v:tariffAmt, c:COLORS.tariff, label:'Tariff'},
+    {v:freightAmt, c:COLORS.freight, label:'Freight'},
+    {v:mgmtAmt, c:COLORS.mgmt, label:'Mgmt'},
+    {v:miscAmt, c:COLORS.misc, label:'Misc'},
+  ];
+  $('stackBar').innerHTML = segs.map(s=>{
+    const pct = total>0 ? (s.v/total*100) : 0;
+    return `<div style="width:${pct}%;background:${s.c};"></div>`;
+  }).join('');
+  $('legend').innerHTML = segs.map(s=>`<span><i style="background:${s.c};"></i>${s.label}</span>`).join('');
+}
+
+function renderDutyMatrixTable(){
+  const head = $('dutyMatrixHead');
+  head.innerHTML = '<th>Classification</th>' + state.fabrics.map(f=>`<th>${f.label}</th>`).join('');
+
+  const tbody = document.querySelector('#dutyMatrixTable tbody');
+  tbody.innerHTML = '';
+  state.classifications.forEach(c=>{
+    if(!state.dutyMatrix[c.id]) state.dutyMatrix[c.id] = {};
+    const tr = document.createElement('tr');
+    let cells = `<td>${c.label}</td>`;
+    state.fabrics.forEach(f=>{
+      const val = state.dutyMatrix[c.id][f.id] !== undefined ? state.dutyMatrix[c.id][f.id] : 0;
+      cells += `<td><input type="number" step="0.1" data-class="${c.id}" data-fabric="${f.id}" value="${val}"></td>`;
+    });
+    tr.innerHTML = cells;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const {class: classId, fabric: fabricId} = e.target.dataset;
+      state.dutyMatrix[classId][fabricId] = parseFloat(e.target.value) || 0;
+    });
+  });
+}
+
+function renderCooTable(){
+  const tbody = document.querySelector('#cooTable tbody');
+  tbody.innerHTML = '';
+  state.countries.forEach((c,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c.label}</td><td style="text-align:center;"><input type="checkbox" data-idx="${i}" data-field="dutyFree" ${c.dutyFree ? 'checked' : ''}></td><td><input type="number" step="0.1" data-idx="${i}" data-field="addl" value="${c.addl}"></td><td class="note">${c.note}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      state.countries[e.target.dataset.idx].addl = parseFloat(e.target.value) || 0;
+    });
+  });
+  tbody.querySelectorAll('input[type=checkbox]').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      state.countries[e.target.dataset.idx].dutyFree = e.target.checked;
+      if($('coo').value === state.countries[e.target.dataset.idx].id) refreshRates();
+    });
+  });
+}
+
+function renderLoadsAndMeta(){
+  $('defFreight').value = state.loads.freight;
+  $('defMgmt').value = state.loads.mgmt;
+  $('defMisc').value = state.loads.misc;
+  $('lastVerifiedInput').value = state.loads.lastVerified;
+  $('lastVerified').textContent = state.loads.lastVerified;
+}
+
+function wireEvents(){
+  document.querySelectorAll('#dirToggle button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      state.direction = b.dataset.dir;
+      updateDirectionUI();
+      calculate();
+    });
+  });
+
+  $('classification').addEventListener('change', ()=>{ refreshRates(); calculate(); });
+  $('fabric').addEventListener('change', ()=>{ refreshRates(); calculate(); });
+  $('coo').addEventListener('change', ()=>{ refreshRates(); calculate(); });
+
+  ['costInput','dutyPct','tariffPct','freightPct','mgmtPct','miscPct'].forEach(id=>{
+    $(id).addEventListener('input', calculate);
+  });
+
+  $('ratesHead').addEventListener('click', ()=>{
+    $('ratesDrawer').classList.toggle('open');
+  });
+
+  $('saveDefaults').addEventListener('click', ()=>{
+    state.loads.freight = parseFloat($('defFreight').value) || 0;
+    state.loads.mgmt = parseFloat($('defMgmt').value) || 0;
+    state.loads.misc = parseFloat($('defMisc').value) || 0;
+    state.loads.lastVerified = $('lastVerifiedInput').value || '';
+    saveStorage();
+    $('lastVerified').textContent = state.loads.lastVerified;
+  });
+
+  $('resetDefaults').addEventListener('click', async ()=>{
+    state.classifications = JSON.parse(JSON.stringify(DEFAULT_CLASSIFICATIONS));
+    state.fabrics = JSON.parse(JSON.stringify(DEFAULT_FABRICS));
+    state.dutyMatrix = JSON.parse(JSON.stringify(DEFAULT_DUTY_MATRIX));
+    state.countries = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES));
+    state.loads = JSON.parse(JSON.stringify(DEFAULT_LOADS));
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    populateSelects();
+    refreshRates();
+    $('freightPct').value = state.loads.freight;
+    $('mgmtPct').value = state.loads.mgmt;
+    $('miscPct').value = state.loads.misc;
+    renderDutyMatrixTable();
+    renderCooTable();
+    renderLoadsAndMeta();
+    calculate();
+    $('saveMsg').textContent = 'Reset to built-in defaults.';
+    setTimeout(()=>{$('saveMsg').textContent='';}, 2500);
+  });
+}
+
+async function init(){
+  await loadStorage();
+  populateSelects();
+  refreshRates();
+  $('freightPct').value = state.loads.freight;
+  $('mgmtPct').value = state.loads.mgmt;
+  $('miscPct').value = state.loads.misc;
+  renderDutyMatrixTable();
+  renderCooTable();
+  renderLoadsAndMeta();
+  updateDirectionUI();
+  wireEvents();
+  calculate();
+}
+
+init();
+</script>
+</body>
+</html>
