@@ -310,6 +310,12 @@ button.action.ghost{background:transparent;color:var(--ink);}
       <h2>Inputs</h2>
 
       <div class="field">
+        <label for="brand">Brand</label>
+        <select id="brand"></select>
+        <div class="sub">Sets the default freight, management and misc loads below. You can still override them per calculation.</div>
+      </div>
+
+      <div class="field">
         <label for="market">Importing Into</label>
         <select id="market">
           <option value="US">United States</option>
@@ -369,7 +375,14 @@ button.action.ghost{background:transparent;color:var(--ink);}
         <label>Import GST/HST %</label>
         <input type="number" id="gstPct" step="0.1" readonly tabindex="-1" class="locked-field">
         <div class="effective-date" id="gstEffectiveNote">Effective —</div>
-        <div class="sub">Applied to FOB + Duty, per CBSA rules. Often recoverable via input tax credit if your business is GST-registered — factor that into how you use this number.</div>
+        <div class="sub">CBSA charges only the flat 5% federal GST at the border on commercial imports — the higher provincial HST rate does <em>not</em> apply here despite the field name. Any provincial HST top-up is a separate self-assessment on your regular GST/HST return, not collected at import, and is typically offset by an equal input tax credit if your business is GST/HST-registered and using the goods commercially.</div>
+      </div>
+
+      <div class="field" id="fxFieldRow" style="display:none;">
+        <label>Exchange Rate (1 USD = ? CAD)</label>
+        <input type="number" id="fxRate" step="0.0001">
+        <div class="effective-date" id="fxRateNote">As of —</div>
+        <div class="sub">Market rate, not a government schedule — stays editable. Update it whenever the rate moves; it isn't locked like the fields above.</div>
       </div>
 
       <div class="sub">Duty, tariff, and (for Canada) GST/HST are pulled directly from the official rate schedule and locked here — update the underlying numbers in the Rate Tables drawer below if a schedule changes. Freight, management, and misc loads are your own business assumptions and stay editable per calculation.</div>
@@ -381,6 +394,7 @@ button.action.ghost{background:transparent;color:var(--ink);}
       <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px;">Cost Buildup</h2>
 
       <div class="manifest-row"><span id="rowFobLabel">FOB Cost</span><span class="amt" id="rowFob">$0.00</span></div>
+      <div class="manifest-row sub" id="rowFxInputWrap" style="display:none;"><span id="rowFxInputLabel">= USD equivalent</span><span class="amt" id="rowFxInputAmt">$0.00</span></div>
       <div class="manifest-row sub"><span id="rowDutyLabel">+ Duty (0%)</span><span class="amt" id="rowDuty">$0.00</span></div>
       <div class="manifest-row sub"><span id="rowTariffLabel">+ Additional Tariff (0%)</span><span class="amt" id="rowTariff">$0.00</span></div>
       <div class="manifest-row sub"><span id="rowFreightLabel">+ Freight Load (0%)</span><span class="amt" id="rowFreight">$0.00</span></div>
@@ -388,6 +402,7 @@ button.action.ghost{background:transparent;color:var(--ink);}
       <div class="manifest-row sub"><span id="rowMiscLabel">+ Misc Load (0%)</span><span class="amt" id="rowMisc">$0.00</span></div>
       <div class="manifest-row sub" id="rowGstWrap" style="display:none;"><span id="rowGstLabel">+ GST/HST (0%)</span><span class="amt" id="rowGst">$0.00</span></div>
       <div class="manifest-row total"><span id="rowTotalLabel">LDP Cost</span><span class="amt" id="rowTotal">$0.00</span></div>
+      <div class="manifest-row sub" id="rowFxOutputWrap" style="display:none;"><span id="rowFxOutputLabel">≈ CAD equivalent</span><span class="amt" id="rowFxOutputAmt">$0.00</span></div>
 
       <div class="stack-bar" id="stackBar"></div>
       <div class="legend" id="legend"></div>
@@ -415,16 +430,19 @@ button.action.ghost{background:transparent;color:var(--ink);}
       <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Canada — Country of Origin, Tariff Treatment</h3>
       <table id="cooTableCA"><thead><tr><th>Country</th><th>Duty-Free (FTA/LDCT)?</th><th>Addl. Surcharge %</th><th>Note</th></tr></thead><tbody></tbody></table>
 
-      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Default Loads</h3>
-      <div class="two-col" style="max-width:520px;grid-template-columns:1fr 1fr 1fr 1fr;">
-        <div class="field"><label>Freight Load Default %</label><input type="number" id="defFreight" step="0.1"></div>
-        <div class="field"><label>Management Load Default %</label><input type="number" id="defMgmt" step="0.1"></div>
-        <div class="field"><label>Misc Load Default %</label><input type="number" id="defMisc" step="0.1"></div>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;color:var(--muted);">Default Loads by Brand</h3>
+      <table id="brandLoadsTable" style="max-width:520px;"><thead><tr><th>Brand</th><th>Freight %</th><th>Mgmt %</th><th>Misc %</th></tr></thead><tbody></tbody></table>
+
+      <div class="two-col" style="max-width:260px;">
         <div class="field"><label>Canada GST/HST Default %</label><input type="number" id="defGst" step="0.1"></div>
       </div>
       <div class="two-col" style="max-width:400px;">
         <div class="field"><label>US Schedule Effective Date</label><input type="text" id="effectiveUSInput" style="max-width:200px;"></div>
         <div class="field"><label>Canada Schedule Effective Date</label><input type="text" id="effectiveCAInput" style="max-width:200px;"></div>
+      </div>
+      <div class="two-col" style="max-width:400px;">
+        <div class="field"><label>USD → CAD Exchange Rate</label><input type="number" id="defFxRate" step="0.0001"></div>
+        <div class="field"><label>Exchange Rate As-Of Date</label><input type="text" id="defFxDate" style="max-width:200px;"></div>
       </div>
       <div class="field"><label>Last Verified Date</label><input type="text" id="lastVerifiedInput" style="max-width:200px;"></div>
 
@@ -481,8 +499,8 @@ const DEFAULT_COUNTRIES_US = [
   {id:'ID', label:'Indonesia',      addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
   {id:'LK', label:'Sri Lanka',      addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
   {id:'PK', label:'Pakistan',       addl:10.0, dutyFree:false, note:'Sec. 301 forced-labor tariff, 10% tier'},
-  {id:'HN', label:'Honduras',       addl:10.0, dutyFree:true,  note:'CAFTA-DR assumed qualifying \u2014 base duty zeroed. Forced-labor 10% tier still applies on top'},
-  {id:'NI', label:'Nicaragua',      addl:12.5, dutyFree:true,  note:'CAFTA-DR assumed qualifying \u2014 base duty zeroed. Forced-labor 12.5% tier still applies (not on the 10% list)'},
+  {id:'HN', label:'Honduras',       addl:0.0,  dutyFree:true,  note:'CAFTA-DR assumed qualifying \u2014 base duty zeroed, and USTR\u2019s Section 301 forced-labor action explicitly excludes CAFTA-DR-qualifying textile/apparel articles from Honduras'},
+  {id:'NI', label:'Nicaragua',      addl:0.0,  dutyFree:true,  note:'CAFTA-DR assumed qualifying \u2014 base duty zeroed, and USTR\u2019s Section 301 forced-labor action explicitly excludes CAFTA-DR-qualifying textile/apparel articles from Nicaragua. Separately, a Nicaragua-specific Sec. 301 action is scheduled to add 10% on Jan 1, 2027 and 15% on Jan 1, 2028 \u2014 watch this one'},
   {id:'MX', label:'Mexico',         addl:0.0,  dutyFree:true,  note:'USMCA assumed qualifying \u2014 base duty zeroed, and USMCA carries its own forced-labor-tariff exemption'},
   {id:'TR', label:'Turkey',         addl:12.5, dutyFree:false, note:'Sec. 301 forced-labor tariff, 12.5% tier (not on the 10% list)'},
   {id:'EG', label:'Egypt',          addl:12.5, dutyFree:true,  note:'QIZ assumed qualifying \u2014 base duty zeroed. Forced-labor 12.5% tier still applies on top \u2014 not fully duty-free'},
@@ -490,6 +508,7 @@ const DEFAULT_COUNTRIES_US = [
   {id:'KE', label:'Kenya',          addl:0.0,  dutyFree:true,  note:'AGOA assumed qualifying \u2014 base duty zeroed. Not on the Sec. 301 forced-labor list'},
   {id:'ET', label:'Ethiopia',       addl:0.0,  dutyFree:false, note:'AGOA suspended, not a 2026 beneficiary \u2014 standard MFN duty applies. Not on the Sec. 301 forced-labor list'},
   {id:'EU', label:'European Union', addl:0.0,  dutyFree:false, note:'15% all-inclusive trade-deal ceiling supersedes; 10% forced-labor tier doesn\u2019t add on top'},
+  {id:'CA', label:'Canada',         addl:50.0, dutyFree:true,  note:'CUSMA base duty 0%, and CUSMA-compliant goods are exempt from the general 10% Sec. 301 forced-labor tier \u2014 but the separate Section 338 tariff (effective Aug 22, 2026) still adds up to 50% on apparel/textiles regardless of CUSMA status; confirm exact HS line, tiers run 15/25/50% by product'},
 ];
 
 // Canada duty matrix — Canada's MFN apparel rates run narrower band (~16-18%)
@@ -517,7 +536,7 @@ const DEFAULT_DUTY_MATRIX_CA = {
 const DEFAULT_COUNTRIES_CA = [
   {id:'CN', label:'China',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no FTA or preference program with Canada'},
   {id:'VN', label:'Vietnam',        addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 CPTPP can reduce duty to 0% but yarn-forward rules of origin are strict and often unmet for apparel'},
-  {id:'BD', label:'Bangladesh',     addl:0.0, dutyFree:false, note:'LDCT preference is being phased out in 2026 \u2014 treat as MFN going forward; verify current status with CBSA'},
+  {id:'BD', label:'Bangladesh',     addl:0.0, dutyFree:true,  note:'LDCT duty-free currently. Bangladesh graduates from LDC status Nov 24, 2026, but Canada passed GPT+ legislation extending duty-free access through 2034 \u2014 no gap expected'},
   {id:'KH', label:'Cambodia',       addl:0.0, dutyFree:true,  note:'LDCT (Least Developed Country Tariff) assumed qualifying \u2014 duty-free for apparel'},
   {id:'IN', label:'India',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 GPT excludes most apparel/textile goods'},
   {id:'ID', label:'Indonesia',      addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 GPT excludes most apparel/textile goods'},
@@ -526,7 +545,7 @@ const DEFAULT_COUNTRIES_CA = [
   {id:'HN', label:'Honduras',       addl:0.0, dutyFree:true,  note:'Canada\u2013Honduras FTA assumed qualifying \u2014 base duty zeroed'},
   {id:'NI', label:'Nicaragua',      addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no Canada FTA with Nicaragua'},
   {id:'MX', label:'Mexico',         addl:0.0, dutyFree:true,  note:'CUSMA assumed qualifying \u2014 base duty zeroed'},
-  {id:'US', label:'United States',  addl:0.0, dutyFree:true,  note:'CUSMA assumed qualifying \u2014 base duty zeroed'},
+  {id:'US', label:'United States',  addl:50.0, dutyFree:true, note:'CUSMA base duty still 0%, but Canada\u2019s new counter-tariff (effective Sept 8, 2026) adds up to 50% specifically on CUSMA-marked US-origin clothing & apparel \u2014 confirm exact HS line, tiers run 15/25/50% by product'},
   {id:'TR', label:'Turkey',         addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no Canada FTA with Turkey'},
   {id:'EG', label:'Egypt',          addl:0.0, dutyFree:false, note:'MFN Tariff \u2014 no Canada FTA with Egypt'},
   {id:'JO', label:'Jordan',         addl:0.0, dutyFree:true,  note:'Canada\u2013Jordan FTA assumed qualifying \u2014 base duty zeroed'},
@@ -535,8 +554,25 @@ const DEFAULT_COUNTRIES_CA = [
   {id:'EU', label:'European Union', addl:0.0, dutyFree:true,  note:'CETA assumed qualifying \u2014 base duty zeroed'},
 ];
 
-const DEFAULT_LOADS = {freight:7.0, mgmt:8.0, misc:10.0, gst:5.0, lastVerified:'Aug 29, 2026', effectiveUS:'Jul 24, 2026', effectiveCA:'Jan 1, 2026'};
+const DEFAULT_BRANDS = [
+  {id:'dockers', label:'Dockers'},
+  {id:'izod',    label:'Izod'},
+  {id:'buffalo', label:'Buffalo'},
+];
+
+// Freight / management / misc loads per brand. Freight: Dockers 7%, Izod 9%,
+// Buffalo 7%. Management: Dockers 8%, Izod 5%, Buffalo 5%. Misc is still the shared
+// 10% placeholder until each brand's real number is confirmed. Edit this block to
+// change the master defaults for everyone, or use the Rate Tables drawer for your own copy.
+const DEFAULT_BRAND_LOADS = {
+  dockers: {freight:7.0, mgmt:8.0, misc:10.0},
+  izod:    {freight:9.0, mgmt:5.0, misc:10.0},
+  buffalo: {freight:7.0, mgmt:5.0, misc:10.0},
+};
+
+const DEFAULT_LOADS = {gst:0.0, lastVerified:'Sep 3, 2026', effectiveUS:'Jul 24, 2026', effectiveCA:'Jan 1, 2026', fxRate:1.385, fxDate:'Sep 3, 2026'};
 const STORAGE_KEY = 'fob-ldp-rate-tables';
+const BRAND_KEY = 'fob-ldp-last-brand';
 const COLORS = {fob:'#14213D', duty:'#B23A2F', tariff:'#D98A5F', freight:'#4C7A5D', mgmt:'#8B8577', misc:'#C9A15A', gst:'#6B5B95'};
 
 let state = {
@@ -547,6 +583,8 @@ let state = {
   countriesUS: JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_US)),
   countriesCA: JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_CA)),
   loads: JSON.parse(JSON.stringify(DEFAULT_LOADS)),
+  brandLoads: JSON.parse(JSON.stringify(DEFAULT_BRAND_LOADS)),
+  brand: 'dockers',
   direction: 'fob2ldp',
   market: 'US',
 };
@@ -565,8 +603,20 @@ async function loadStorage(){
       if(parsed.dutyMatrixCA) state.dutyMatrixCA = parsed.dutyMatrixCA;
       if(parsed.countriesUS) state.countriesUS = parsed.countriesUS;
       if(parsed.countriesCA) state.countriesCA = parsed.countriesCA;
-      if(parsed.loads) state.loads = parsed.loads;
+      if(parsed.loads) state.loads = Object.assign({}, state.loads, parsed.loads);
+      if(parsed.brandLoads){
+        DEFAULT_BRANDS.forEach(b=>{
+          if(parsed.brandLoads[b.id]) state.brandLoads[b.id] = Object.assign({}, state.brandLoads[b.id], parsed.brandLoads[b.id]);
+        });
+      } else if(parsed.loads && parsed.loads.freight !== undefined){
+        // Older save from before brands existed: carry the user's saved loads over to every brand.
+        DEFAULT_BRANDS.forEach(b=>{
+          state.brandLoads[b.id] = {freight:parsed.loads.freight, mgmt:parsed.loads.mgmt, misc:parsed.loads.misc};
+        });
+      }
     }
+    const lastBrand = localStorage.getItem(BRAND_KEY);
+    if(lastBrand && DEFAULT_BRANDS.some(b=>b.id===lastBrand)) state.brand = lastBrand;
   }catch(e){ /* no saved data yet — use built-in defaults */ }
 }
 
@@ -579,7 +629,8 @@ async function saveStorage(){
       dutyMatrixCA: state.dutyMatrixCA,
       countriesUS: state.countriesUS,
       countriesCA: state.countriesCA,
-      loads: state.loads
+      loads: state.loads,
+      brandLoads: state.brandLoads
     }));
     $('saveMsg').textContent = 'Saved to this device.';
     setTimeout(()=>{$('saveMsg').textContent='';}, 2500);
@@ -649,9 +700,12 @@ function updateMarketUI(){
   const isCA = state.market === 'CA';
   $('gstRow').style.display = isCA ? 'block' : 'none';
   $('rowGstWrap').style.display = isCA ? 'flex' : 'none';
+  $('fxFieldRow').style.display = isCA ? 'block' : 'none';
   if(isCA){
     $('gstPct').value = state.loads.gst;
     $('gstEffectiveNote').textContent = `Effective ${state.loads.effectiveCA}`;
+    $('fxRate').value = state.loads.fxRate;
+    $('fxRateNote').textContent = `As of ${state.loads.fxDate}`;
   }
   const effectiveDate = isCA ? state.loads.effectiveCA : state.loads.effectiveUS;
   $('dutyEffectiveNote').textContent = `Effective ${effectiveDate}`;
@@ -661,10 +715,14 @@ function updateMarketUI(){
 
 function updateDirectionUI(){
   const isFob = state.direction === 'fob2ldp';
-  $('costLabel').textContent = isFob ? 'FOB Cost (per unit, USD)' : 'LDP Cost (per unit, USD)';
-  $('rowFobLabel').textContent = isFob ? 'FOB Cost' : 'LDP Cost';
+  const isCA = state.market === 'CA';
+  const ldpCurrency = isCA ? 'CAD' : 'USD';
+  $('costLabel').textContent = isFob ? 'FOB Cost (per unit, USD)' : `LDP Cost (per unit, ${ldpCurrency})`;
+  $('rowFobLabel').textContent = isFob ? 'FOB Cost' : `LDP Cost (${ldpCurrency})`;
   $('rowTotalLabel').textContent = isFob ? 'LDP Cost' : 'Target FOB Cost';
   $('stampLabel').textContent = isFob ? 'LDP' : 'TARGET FOB';
+  $('rowFxInputWrap').style.display = (isCA && !isFob) ? 'flex' : 'none';
+  $('rowFxOutputWrap').style.display = (isCA && isFob) ? 'flex' : 'none';
   document.querySelectorAll('#dirToggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.dir === state.direction);
   });
@@ -672,25 +730,35 @@ function updateDirectionUI(){
 
 function calculate(){
   const isCA = state.market === 'CA';
+  const isFob = state.direction === 'fob2ldp';
   const dutyPct = parseFloat($('dutyPct').value) || 0;
   const tariffPct = parseFloat($('tariffPct').value) || 0;
   const freightPct = parseFloat($('freightPct').value) || 0;
   const mgmtPct = parseFloat($('mgmtPct').value) || 0;
   const miscPct = parseFloat($('miscPct').value) || 0;
   const gstPct = isCA ? (parseFloat($('gstPct').value) || 0) : 0;
-  const costVal = parseFloat($('costInput').value) || 0;
+  const fxRate = isCA ? (parseFloat($('fxRate').value) || 1) : 1;
+  const rawInput = parseFloat($('costInput').value) || 0;
 
   // GST compounds on (FOB + Duty) per CBSA rules; everything else is additive on FOB.
   const additivePct = (dutyPct + tariffPct + freightPct + mgmtPct + miscPct) / 100;
   const k = (1 + additivePct) + (gstPct / 100) * (1 + dutyPct / 100);
 
-  let fob, ldp;
-  if(state.direction === 'fob2ldp'){
-    fob = costVal;
-    ldp = fob * k;
+  // In Canada mode, the LDP side of the calculation is entered/expressed in CAD;
+  // FOB is always USD (that's how factories invoice). Convert at the boundary.
+  let fob, ldpUsd, ldpCad;
+  if(isFob){
+    fob = rawInput; // USD
+    ldpUsd = fob * k;
+    ldpCad = ldpUsd * fxRate;
   } else {
-    ldp = costVal;
-    fob = ldp / k;
+    if(isCA){
+      ldpCad = rawInput;          // entered in CAD
+      ldpUsd = ldpCad / fxRate;   // convert to USD before running the math
+    } else {
+      ldpUsd = rawInput;          // US mode: entered directly in USD
+    }
+    fob = ldpUsd / k;
   }
   const dutyAmt = fob * dutyPct / 100;
   const tariffAmt = fob * tariffPct / 100;
@@ -699,11 +767,14 @@ function calculate(){
   const miscAmt = fob * miscPct / 100;
   const gstAmt = isCA ? (fob + dutyAmt) * gstPct / 100 : 0;
 
-  const isFob = state.direction === 'fob2ldp';
   const sign = isFob ? '+' : '−';
   const tariffLabel = isCA ? 'Addl. Surcharge' : 'Additional Tariff';
 
-  $('rowFob').textContent = fmt(costVal);
+  $('rowFob').textContent = fmt(rawInput);
+  if(isCA && !isFob){
+    $('rowFxInputLabel').textContent = `= USD equivalent (1 USD = ${fxRate.toFixed(4)} CAD)`;
+    $('rowFxInputAmt').textContent = fmt(ldpUsd);
+  }
   $('rowDutyLabel').textContent = `${sign} Duty (${dutyPct.toFixed(1)}%)`;
   $('rowDuty').textContent = fmt(dutyAmt);
   $('rowTariffLabel').textContent = `${sign} ${tariffLabel} (${tariffPct.toFixed(1)}%)`;
@@ -718,7 +789,11 @@ function calculate(){
     $('rowGstLabel').textContent = `${sign} GST/HST (${gstPct.toFixed(1)}%)`;
     $('rowGst').textContent = fmt(gstAmt);
   }
-  $('rowTotal').textContent = fmt(isFob ? ldp : fob);
+  $('rowTotal').textContent = fmt(isFob ? ldpUsd : fob);
+  if(isCA && isFob){
+    $('rowFxOutputLabel').textContent = `≈ CAD equivalent (1 USD = ${fxRate.toFixed(4)} CAD)`;
+    $('rowFxOutputAmt').textContent = fmt(ldpCad);
+  }
 
   // stack bar
   const segs = [
@@ -795,13 +870,49 @@ function renderCooTable(market){
   });
 }
 
+function populateBrandSelect(){
+  const sel = $('brand');
+  sel.innerHTML = '';
+  DEFAULT_BRANDS.forEach(b=>{
+    const o = document.createElement('option');
+    o.value = b.id; o.textContent = b.label;
+    sel.appendChild(o);
+  });
+  sel.value = state.brand;
+}
+
+function applyBrandLoads(){
+  const l = state.brandLoads[state.brand] || {freight:0, mgmt:0, misc:0};
+  $('freightPct').value = l.freight;
+  $('mgmtPct').value = l.mgmt;
+  $('miscPct').value = l.misc;
+}
+
+function renderBrandLoadsTable(){
+  const tbody = document.querySelector('#brandLoadsTable tbody');
+  tbody.innerHTML = '';
+  DEFAULT_BRANDS.forEach(b=>{
+    const l = state.brandLoads[b.id] || (state.brandLoads[b.id] = {freight:0, mgmt:0, misc:0});
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${b.label}</td>` +
+      ['freight','mgmt','misc'].map(f=>`<td><input type="number" step="0.1" data-brand="${b.id}" data-field="${f}" value="${l[f]}"></td>`).join('');
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const {brand, field} = e.target.dataset;
+      state.brandLoads[brand][field] = parseFloat(e.target.value) || 0;
+      if(brand === state.brand){ applyBrandLoads(); calculate(); }
+    });
+  });
+}
+
 function renderLoadsAndMeta(){
-  $('defFreight').value = state.loads.freight;
-  $('defMgmt').value = state.loads.mgmt;
-  $('defMisc').value = state.loads.misc;
   $('defGst').value = state.loads.gst;
   $('effectiveUSInput').value = state.loads.effectiveUS;
   $('effectiveCAInput').value = state.loads.effectiveCA;
+  $('defFxRate').value = state.loads.fxRate;
+  $('defFxDate').value = state.loads.fxDate;
   $('lastVerifiedInput').value = state.loads.lastVerified;
   $('lastVerified').textContent = state.loads.lastVerified;
 }
@@ -815,10 +926,18 @@ function wireEvents(){
     });
   });
 
+  $('brand').addEventListener('change', ()=>{
+    state.brand = $('brand').value;
+    try{ localStorage.setItem(BRAND_KEY, state.brand); }catch(e){}
+    applyBrandLoads();
+    calculate();
+  });
+
   $('market').addEventListener('change', ()=>{
     state.market = $('market').value;
     populateSelects();
     updateMarketUI();
+    updateDirectionUI();
     refreshRates();
     calculate();
   });
@@ -827,7 +946,7 @@ function wireEvents(){
   $('fabric').addEventListener('change', ()=>{ refreshRates(); calculate(); });
   $('coo').addEventListener('change', ()=>{ refreshRates(); calculate(); });
 
-  ['costInput','dutyPct','tariffPct','freightPct','mgmtPct','miscPct','gstPct'].forEach(id=>{
+  ['costInput','dutyPct','tariffPct','freightPct','mgmtPct','miscPct','gstPct','fxRate'].forEach(id=>{
     $(id).addEventListener('input', calculate);
   });
 
@@ -836,12 +955,11 @@ function wireEvents(){
   });
 
   $('saveDefaults').addEventListener('click', ()=>{
-    state.loads.freight = parseFloat($('defFreight').value) || 0;
-    state.loads.mgmt = parseFloat($('defMgmt').value) || 0;
-    state.loads.misc = parseFloat($('defMisc').value) || 0;
     state.loads.gst = parseFloat($('defGst').value) || 0;
     state.loads.effectiveUS = $('effectiveUSInput').value || '';
     state.loads.effectiveCA = $('effectiveCAInput').value || '';
+    state.loads.fxRate = parseFloat($('defFxRate').value) || 1;
+    state.loads.fxDate = $('defFxDate').value || '';
     state.loads.lastVerified = $('lastVerifiedInput').value || '';
     saveStorage();
     $('lastVerified').textContent = state.loads.lastVerified;
@@ -856,13 +974,13 @@ function wireEvents(){
     state.countriesUS = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_US));
     state.countriesCA = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES_CA));
     state.loads = JSON.parse(JSON.stringify(DEFAULT_LOADS));
+    state.brandLoads = JSON.parse(JSON.stringify(DEFAULT_BRAND_LOADS));
     try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
     populateSelects();
     updateMarketUI();
     refreshRates();
-    $('freightPct').value = state.loads.freight;
-    $('mgmtPct').value = state.loads.mgmt;
-    $('miscPct').value = state.loads.misc;
+    applyBrandLoads();
+    renderBrandLoadsTable();
     renderDutyMatrixTable('US');
     renderDutyMatrixTable('CA');
     renderCooTable('US');
@@ -877,12 +995,12 @@ function wireEvents(){
 async function init(){
   await loadStorage();
   $('market').value = state.market;
+  populateBrandSelect();
   populateSelects();
   updateMarketUI();
   refreshRates();
-  $('freightPct').value = state.loads.freight;
-  $('mgmtPct').value = state.loads.mgmt;
-  $('miscPct').value = state.loads.misc;
+  applyBrandLoads();
+  renderBrandLoadsTable();
   renderDutyMatrixTable('US');
   renderDutyMatrixTable('CA');
   renderCooTable('US');
